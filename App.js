@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, View, FlatList } from 'react-native';
 import Cita from './componentes/Cita';
+import Formulario from './componentes/Formulario';
 
 const App = () => {
 
@@ -11,14 +12,26 @@ const App = () => {
     { id: "3", paciente: "Native", propietario: "Maria", sintomas: "No Canta" }
   ])
 
+  //Eliminamos los pacientes del state
+  const eliminarPaciente = id => {
+    setCitas( (citasActuales) => {
+      return citasActuales.filter( cita => cita.id !== id)
+    })
+  }
+
+  //FlatList nos permite renderizar solo lo que se ve en pantalla, mejorando la performance con respecto a map o ScrollView
   return (
       <View style={styles.contenedor}>
 
         <Text style={styles.titulo}>Administrador de Citas</Text>
 
+        <Formulario />
+
+        <Text style={styles.titulo}> {citas.length > 0 ? 'Administra tus citas' : 'No hay citas' } </Text>
+
         <FlatList
           data={citas}
-          renderItem={ ( { item } ) => <Cita item={item} /> }
+          renderItem={ ( { item } ) => <Cita item={item} eliminarPaciente={eliminarPaciente} /> }
           keyExtractor={ cita => cita.id }
         />
 
@@ -26,7 +39,7 @@ const App = () => {
           <View> 
             <Text>{cita.paciente}</Text>
           </View>
-        ))*/}
+        ))*/} 
 
       </View>
   );
@@ -40,6 +53,7 @@ const styles = StyleSheet.create({
   titulo: {
     color: '#FFF',
     marginTop: 40,
+    marginBottom: 20,
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center'    
