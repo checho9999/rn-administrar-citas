@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, View, TextInput, Button } from 'react-native';
+import { Text, StyleSheet, View, TextInput, Button, TouchableHighlight, Alert, ScrollView, SegmentedControlIOSBase } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import shortid from 'shortid';
 
-const Formulario = ( { item, eliminarPaciente } ) => {
+const Formulario = ( { citas, setCitas, guardarMostrarForm } ) => {
+
+    //Definimos el state para guardar el paciente
+    const [paciente, guardarPaciente] = useState('');
+    //Definimos el state para guardar el propietario
+    const [propietario, guardarPropietario] = useState('');
+    //Definimos el state para guardar el telefono de contacto
+    const [telefono, guardarTelefono] = useState('');
+    //Definimos el state para guardar la fecha
+    const [fecha, guardarFecha] = useState('');
+    //Definimos el state para guardar la hora
+    const [hora, guardarHora] = useState('');
+    //Definimos el state para guardar los sintomas del paciente
+    const [sintomas, guardarSintomas] = useState('');
 
     //Definimos el state del formato de la fecha
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -21,7 +35,9 @@ const Formulario = ( { item, eliminarPaciente } ) => {
   
     //Actualizamos el state de la fecha segun la seleccion del usuario
     const confirmarFecha = date => {
-        console.warn("A date has been picked: ", date);
+        const opciones = { year: 'numeric', month: 'long', day: '2-digit' }
+        guardarFecha(date.toLocaleDateString('es-ES', opciones))
+        //console.warn("A date has been picked: ", date);
         hideDatePicker();
     };
 
@@ -37,36 +53,78 @@ const Formulario = ( { item, eliminarPaciente } ) => {
 
     //Actualizamos el state de la hora segun la seleccion del usuario
     const confirmarHora = time => {
-        console.warn("A date has been picked: ", time);
+        const opciones = { hour: 'numeric', minute: '2-digit', hour12: false }
+        guardarHora(time.toLocaleTimeString('en-US', opciones));
+        //console.warn("A time has been picked: ", time);
         hideTimePicker();
     };
 
+    //Creamos una nueva cita
+    const crearNuevaCita = () => {
+        //Validamos los datos introducidos por el usuario
+        if (paciente.trim() === '' || propietario.trim() === '' ||
+        telefono.trim() === '' || fecha.trim() === '' ||
+        hora.trim() === '' || sintomas.trim() === '')
+        {
+            //Mostramos una alerta para el caso de que falle la validacion
+            mostrarAlerta()
+            return;
+        }
+        
+        //Creamos una nueva cita
+        const cita = { paciente, propietario, telefono, fecha, hora, sintomas }
+    
+        cita.id = shortid.generate();
+
+        //console.log(cita);
+        //Agregamos la cita al state
+        setCitas([
+            ...citas, cita
+        ])
+
+        //Ocultamos el formulario
+        guardarMostrarForm(false)
+       
+    }
+
+    //Mostramos una alerta
+    const mostrarAlerta = () => {
+       Alert.alert(
+           'Error', //Titulo
+           'Todos los campos son obligatorios', //mensaje
+           [{
+               text: 'OK' //Arreglo de botones
+           }]
+       )
+    }
+
     return (
-      <View style={styles.formulario}>
+      <ScrollView style={styles.formulario}>
 
         <View>
             <Text style={styles.label}>Paciente: </Text>
             <TextInput style={styles.input}
-                onChangeText={ (texto) => console.log(texto) }
+                onChangeText={ (texto) => guardarPaciente(texto) }
             />
         </View>
 
         <View>
             <Text style={styles.label}>Dueño: </Text>
             <TextInput style={styles.input}
-                onChangeText={ (texto) => console.log(texto) }
+                onChangeText={ (texto) => guardarPropietario(texto) }
             />
         </View>
 
         <View>
             <Text style={styles.label}>Teléfono Contacto: </Text>
             <TextInput style={styles.input}
-                onChangeText={ (texto) => console.log(texto) }
+                onChangeText={ (texto) => guardarTelefono(texto) }
                 keyboardType='numeric'
             />
         </View>
 
         <View>
+            <Text style={styles.label}>Fecha: </Text>
             <Button title='Seleccion Fecha' onPress={showDatePicker} />
             <DateTimePickerModal
                 isVisible={isDatePickerVisible}
@@ -79,9 +137,11 @@ const Formulario = ( { item, eliminarPaciente } ) => {
                 confirmTextIOS='Confirmar'
                 is24Hour
             />
+            <Text>{fecha}</Text>
         </View>
 
         <View>
+            <Text style={styles.label}>Hora: </Text>
             <Button title='Seleccionar Hora' onPress={showTimePicker} />
             <DateTimePickerModal
                 isVisible={isTimePickerVisible}
@@ -94,17 +154,22 @@ const Formulario = ( { item, eliminarPaciente } ) => {
                 confirmTextIOS='Confirmar'
                 is24Hour
             />
+            <Text>{hora}</Text>
         </View>
 
         <View>
             <Text style={styles.label}>Síntomas: </Text>
             <TextInput style={styles.input}
                 multiline
-                onChangeText={ (texto) => console.log(texto) }
+                onChangeText={ (texto) => guardarSintomas(texto) }
             />
-        </View>        
+        </View>   
 
-      </View>  
+        <TouchableHighlight onPress={ () => crearNuevaCita() } style={styles.btnSubmit}>
+            <Text style={styles.textoSubmit}>Enviar</Text>
+        </TouchableHighlight>     
+
+      </ScrollView>  
     )
 }
 
@@ -127,6 +192,16 @@ const styles = StyleSheet.create({
         borderColor: '#e1e1e1',
         borderWidth: 1,
         borderStyle: 'solid'
+    },
+    btnSubmit: {
+        padding: 10,
+        backgroundColor: '#7d024e',
+        marginVertical: 10
+    },
+    textoSubmit: {
+      color: '#FFF',
+      fontWeight: 'bold',
+      textAlign: 'center'    
     }
   });
 
